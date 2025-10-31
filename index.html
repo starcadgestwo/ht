@@ -1,2 +1,388 @@
-<h1>Hello GitHub Pages!</h1>
-<p>This site works 🎉</p>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Halloween Treat Tracker</title>
+  <style>
+    :root {
+      --bg: #0b0620;
+      --bg2: #120a2a;
+      --fg: #f5f3ff;
+      --accent: #ff6a00; /* pumpkin orange */
+      --accent2: #14ff72; /* slime green */
+      --muted: #9aa3b2;
+      --card: #1a123a;
+      --overlay: rgba(0,0,0,.5);
+    }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: radial-gradient(1200px 800px at 70% -10%, #1a0f34 0, #0b0620 60%);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      -webkit-tap-highlight-color: transparent;
+    }
+    .app { position: relative; height: 100dvh; display: flex; flex-direction: column; }
+
+    .header {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: calc(8px + env(safe-area-inset-top)) env(safe-area-inset-right) 8px env(safe-area-inset-left);
+      pointer-events: none; z-index: 10;
+    }
+    .header .btn {
+      pointer-events: auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: var(--fg); padding: 10px 12px; border-radius: 16px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      font-weight: 600; user-select: none; touch-action: manipulation;
+    }
+    .header .btn:active { transform: scale(0.98); }
+    .header .btn.hold { position: relative; overflow: hidden; }
+    .hold-progress { position: absolute; inset: 0; background: var(--accent); opacity: 0.15; transform: scaleX(0); transform-origin: left; transition: transform .1s linear; }
+    .title { font-weight: 800; letter-spacing: .5px; font-size: 16px; }
+
+    .main { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 8px; padding: 60px 8px 8px; }
+    .pane { border-radius: 18px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); outline: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.25) inset; position: relative; overflow: hidden; }
+    .pane .label { position:absolute; top: 10px; left: 12px; font-size: 12px; letter-spacing:.4px; color: var(--muted); }
+
+    .inputPane { display:flex; align-items:center; justify-content:center; font-size: clamp(24px,6vw,40px); text-align:center; padding: 1rem; }
+    .enterPane { display:flex; align-items:center; justify-content:center; font-size: 14px; color: var(--muted); }
+
+    .debug { text-align:center; font-size:12px; opacity:.9; margin-top:6px; }
+    .spooky { position:absolute; bottom: 12px; right: 12px; font-size: 20px; }
+
+    .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: rgba(0,0,0,.8); color: #fff; padding: 10px 14px; border-radius: 12px; font-size: 13px; opacity:0; pointer-events:none; transition: opacity .2s, transform .2s; z-index: 200; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+    .sidebar { position: fixed; top: 0; right: 0; width: min(90vw, 380px); height: 100dvh; background: #0e0826; box-shadow: -12px 0 30px rgba(0,0,0,.5); border-left: 1px solid rgba(255,255,255,.07); transform: translateX(100%); transition: transform .25s ease; z-index: 150; display:flex; flex-direction: column; }
+    .sidebar.open { transform: translateX(0%); }
+    .sidebar .grab { width: 32px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); align-self:center; margin: 10px 0; }
+    .sidebar header { display:flex; align-items:center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08);} 
+    .sidebar header .full { background: var(--accent); color:#000; font-weight:700; padding:8px 10px; border-radius:10px; }
+    .sidebar .list { overflow: auto; padding: 10px 14px; display:flex; flex-direction: column; gap: 8px; }
+    .item { display:flex; align-items:center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; }
+    .item .meta { font-size: 12px; color: var(--muted); }
+
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); opacity:0; pointer-events:none; transition: opacity .25s; z-index: 140; }
+    .overlay.show { opacity:1; pointer-events: auto; }
+
+    .modal { position: fixed; inset: 0; background: var(--bg2); z-index: 160; display:none; flex-direction: column; }
+    .modal.show { display:flex; }
+    .modal header { display:flex; justify-content: space-between; align-items:center; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08);} 
+    .modal .content { overflow:auto; padding: 14px; display:flex; flex-direction: column; gap: 10px; }
+
+    .badge { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+
+    @media (min-width: 600px) { .main { padding: 72px 12px 12px; gap: 12px; } }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="header">
+      <button id="modeBtn" class="btn hold" aria-label="Toggle mode (hold 3s)">
+        <span class="title">Tap Mode</span>
+        <span class="hold-progress"></span>
+      </button>
+      <div></div>
+      <button id="sidebarBtn" class="btn hold" aria-label="Open sidebar (hold 3s)">☰
+        <span class="hold-progress"></span>
+      </button>
+    </div>
+
+    <main class="main">
+      <section id="inputPane" class="pane inputPane" role="button" aria-label="Top input area">
+        <span id="inputText">Tap here to set: Address digit 1</span>
+        <div class="spooky">🎃</div>
+        <div class="label">Top: input</div>
+      </section>
+
+      <section id="enterPane" class="pane enterPane" role="button" aria-label="Bottom enter area">
+        <div>
+          <div id="enterLabel">Hold 3s to reset current entry • Tap to confirm this field</div>
+          <div class="debug" id="debugText">Addr: ____ • Outside: — • Amount: — • Current taps: 0</div>
+        </div>
+        <div class="label">Bottom: enter/reset</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="grab"></div>
+    <header>
+      <strong>Recent entries</strong>
+      <button class="full" id="fullListBtn">Full List</button>
+    </header>
+    <div class="list" id="recentList"></div>
+  </div>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="modal" id="fullModal">
+    <header>
+      <strong>All entries</strong>
+      <button class="btn" id="closeFull">✕</button>
+    </header>
+    <div class="content" id="fullList"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  (function(){
+    const inputPane = document.getElementById('inputPane');
+    const enterPane = document.getElementById('enterPane');
+    const inputText = document.getElementById('inputText');
+    const debugText = document.getElementById('debugText');
+    const sidebarBtn = document.getElementById('sidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const modeBtn = document.getElementById('modeBtn');
+    const toast = document.getElementById('toast');
+    const fullListBtn = document.getElementById('fullListBtn');
+    const fullModal = document.getElementById('fullModal');
+    const closeFull = document.getElementById('closeFull');
+    const recentList = document.getElementById('recentList');
+    const fullList = document.getElementById('fullList');
+
+    const HOLD_MS = 3000;
+
+    const state = {
+      mode: 'tap',
+      fieldIndex: 0,
+      tapCount: 0,
+      entry: { address: [0,0,0,0], outside: true, amount:0 },
+      entries: loadEntries()
+    };
+
+    const fields = [
+      { key:'address0', label:'Address digit 1', type:'digit', idx:0, max:9 },
+      { key:'address1', label:'Address digit 2', type:'digit', idx:1, max:9 },
+      { key:'address2', label:'Address digit 3', type:'digit', idx:2, max:9 },
+      { key:'address3', label:'Address digit 4', type:'digit', idx:3, max:9 },
+      { key:'outside',  label:'Outside? (even=True, odd=False)', type:'bool' },
+      { key:'amount',   label:'Amount 0\u20133', type:'scale', max:3 },
+    ];
+
+    function saveEntries(){
+      localStorage.setItem('treatmap_entries', JSON.stringify(state.entries));
+    }
+    function loadEntries(){
+      try {
+        const raw = localStorage.getItem('treatmap_entries');
+        return raw ? JSON.parse(raw) : [];
+      } catch(e){ return []; }
+    }
+
+    function vibrate(ms){ if(window.navigator && navigator.vibrate) navigator.vibrate(ms); }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(()=> toast.classList.remove('show'), 1600);
+    }
+
+    function formatEntry(e){
+      const addr = e.address.join('');
+      const outside = e.outside ? 'Outside' : 'Knock';
+      const amountNames = ['0', '1', '2+', 'Handful'];
+      return { addr, outside, amountLabel: amountNames[e.amount] || String(e.amount) };
+    }
+
+    function renderLists(){
+      recentList.innerHTML = '';
+      const reversed = [...state.entries].reverse();
+      reversed.forEach((e)=>{
+        const f = formatEntry(e);
+        const div = document.createElement('div');
+        div.className = 'item';
+        const left = document.createElement('div');
+        left.innerHTML = `<strong>${f.addr}</strong><div class="meta">${f.outside} • ${f.amountLabel}</div>`;
+        const time = document.createElement('span');
+        time.className = 'badge';
+        time.textContent = new Date(e.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        div.appendChild(left);
+        div.appendChild(time);
+        recentList.appendChild(div);
+      });
+
+      fullList.innerHTML = '';
+      state.entries.forEach((e)=>{
+        const f = formatEntry(e);
+        const row = document.createElement('div');
+        row.className = 'item';
+        row.innerHTML = `<div><strong>${f.addr}</strong><div class="meta">${f.outside} • ${f.amountLabel}</div></div><span class="badge">${new Date(e.ts).toLocaleString()}</span>`;
+        fullList.appendChild(row);
+      });
+    }
+
+    function resetInProgress(){
+      state.fieldIndex = 0;
+      state.tapCount = 0;
+      state.entry = { address: [0,0,0,0], outside: true, amount: 0 };
+      updateUI();
+    }
+
+    function updateUI(){
+      const field = fields[state.fieldIndex];
+      inputText.textContent = `Tap here to set: ${field.label}`;
+      const preview = { ...state.entry, address: [...state.entry.address] };
+      if(field.type === 'digit'){
+        const v = (state.entry.address[field.idx] + state.tapCount) % 10;
+        preview.address[field.idx] = v;
+      } else if(field.type === 'bool'){
+        const v = (state.tapCount % 2 === 0); // even -> True (Outside)
+        preview.outside = v;
+      } else if(field.type === 'scale'){
+        const v = (state.entry.amount + state.tapCount) % 4;
+        preview.amount = v;
+      }
+      debugText.textContent =
+        `Addr: ${preview.address.map(d=>d).join('')} • ` +
+        `Outside: ${preview.outside ? 'True (Outside)' : 'False (Knock)'} • ` +
+        `Amount: ${preview.amount} • Current taps: ${state.tapCount}`;
+    }
+
+    function commitField(){
+      const field = fields[state.fieldIndex];
+      if(field.type === 'digit'){
+        state.entry.address[field.idx] = (state.entry.address[field.idx] + state.tapCount) % 10;
+      } else if(field.type === 'bool'){
+        state.entry.outside = (state.tapCount % 2 === 0);
+      } else if(field.type === 'scale'){
+        state.entry.amount = (state.entry.amount + state.tapCount) % 4;
+      }
+      state.tapCount = 0;
+
+      if(state.fieldIndex < fields.length - 1){
+        state.fieldIndex++;
+        vibrate(10);
+        updateUI();
+      } else {
+        const final = { ...state.entry, ts: Date.now() };
+        state.entries.push(final);
+        saveEntries();
+        renderLists();
+        showToast('Saved 🎃');
+        vibrate(20);
+        resetInProgress();
+      }
+    }
+
+    // Touch/click dedupe
+    let lastTouchTime = 0;
+    function setupTap(el, handler){
+      el.addEventListener('touchend', (e)=>{
+        if(e.cancelable) e.preventDefault();
+        lastTouchTime = Date.now();
+        handler(e);
+      }, {passive:false});
+      el.addEventListener('click', (e)=>{
+        if(Date.now() - lastTouchTime < 500) return; // ignore ghost click
+        handler(e);
+      });
+    }
+
+    function handleTopTap(){
+      const field = fields[state.fieldIndex];
+      if(field.type === 'digit'){
+        state.tapCount = (state.tapCount + 1) % 10;
+      } else if(field.type === 'bool'){
+        state.tapCount = (state.tapCount + 1) % 1000000; // parity matters only
+      } else if(field.type === 'scale'){
+        state.tapCount = (state.tapCount + 1) % 4;
+      }
+      updateUI();
+    }
+
+    setupTap(inputPane, handleTopTap);
+    setupTap(enterPane, (e)=>{ if(e && e.cancelable) e.preventDefault(); commitField(); });
+
+    // Long-press utility
+    function addHoldBehavior(el, onHold, progressEl){
+      let timer = null;
+      function start(e){
+        e.preventDefault();
+        if(progressEl){
+          progressEl.style.transform = 'scaleX(0)';
+          progressEl.style.transition = 'none';
+          requestAnimationFrame(()=> {
+            progressEl.style.transition = `transform ${HOLD_MS}ms linear`;
+            progressEl.style.transform = 'scaleX(1)';
+          });
+        }
+        timer = setTimeout(()=>{
+          timer = null;
+          if(progressEl){
+            progressEl.style.transition = 'none';
+            progressEl.style.transform = 'scaleX(0)';
+          }
+          onHold();
+        }, HOLD_MS);
+      }
+      function clear(){
+        if(timer){
+          clearTimeout(timer);
+          timer = null;
+          if(progressEl){
+            progressEl.style.transition = 'none';
+            progressEl.style.transform = 'scaleX(0)';
+          }
+        }
+      }
+      el.addEventListener('touchstart', start, {passive:false});
+      el.addEventListener('mousedown', start);
+      el.addEventListener('touchend', clear);
+      el.addEventListener('touchcancel', clear);
+      el.addEventListener('mouseup', clear);
+      el.addEventListener('mouseleave', clear);
+    }
+
+    // Hold 3s to reset the in-progress entry
+    addHoldBehavior(enterPane, ()=>{
+      resetInProgress();
+      showToast('Entry reset');
+      vibrate(30);
+    });
+
+    // Mode toggle (hold 3s)
+    addHoldBehavior(modeBtn, ()=>{
+      if(state.mode === 'tap'){
+        showToast('Type mode coming soon');
+      } else {
+        state.mode = 'tap';
+      }
+    }, modeBtn.querySelector('.hold-progress'));
+
+    // Sidebar open (hold 3s)
+    addHoldBehavior(sidebarBtn, ()=>{ openSidebar(); }, sidebarBtn.querySelector('.hold-progress'));
+
+    function openSidebar(){
+      sidebar.classList.add('open');
+      overlay.classList.add('show');
+    }
+    function closeSidebar(){
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+    }
+    overlay.addEventListener('click', closeSidebar);
+
+    // Swipe to close sidebar
+    let startX = null;
+    sidebar.addEventListener('touchstart', (e)=>{ startX = e.touches[0].clientX; });
+    sidebar.addEventListener('touchmove', (e)=>{
+      if(startX == null) return;
+      const x = e.touches[0].clientX;
+      const delta = startX - x;
+      if(delta > 40){ closeSidebar(); startX = null; }
+    });
+    sidebar.addEventListener('touchend', ()=> startX = null);
+
+    // Full list modal
+    fullListBtn.addEventListener('click', ()=>{ fullModal.classList.add('show'); });
+    closeFull.addEventListener('click', ()=>{ fullModal.classList.remove('show'); });
+
+    // Init
+    renderLists();
+    updateUI();
+  })();
+  </script>
+</body>
+</html>
