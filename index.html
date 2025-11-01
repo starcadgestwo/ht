@@ -48,7 +48,7 @@
     .pane.flash { animation: paneFlash 180ms ease; }
 
     /* TAP MODE */
-    .inputPane, .enterPane { display:flex; place-items:center; justify-content:center; text-align:center; padding: 1em; min-height: 0; }
+    .inputPane, .enterPane { display:flex; align-items:center; justify-content:center; text-align:center; padding: 1em; min-height: 0; }
     .topStatus { font-size: clamp(1.8em,7vw,2.8em); font-weight: 800; letter-spacing: .03em; text-shadow: 0 0.12em 0.5em rgba(0,0,0,.4); }
 
     .enterInner { display:flex; flex-direction:column; gap: 0.8em; align-items:center; justify-content:center; width: 100%; }
@@ -65,6 +65,11 @@
     .sidebar .grab { width: 2.2em; height: 0.25em; border-radius: 0.25em; background: rgba(255,255,255,.28); align-self:center; margin: 0.8em 0; }
     .sidebar header { display:flex; align-items:center; justify-content: space-between; padding: 0.8em 0.9em; border-bottom: 0.06em solid rgba(255,255,255,.08);} 
     .sidebar header .full { background: var(--accent); color:#000; font-weight:700; padding:0.6em 0.7em; border-radius:0.7em; }
+    .sidebar header .ghost { background: transparent; color: var(--fg); font-weight:700; padding:0.6em 0.7em; border-radius:0.7em; border: 0.06em solid rgba(255,255,255,.25); }
+    .sidebar header .headBtns { display:flex; gap: 0.6em; align-items:center; }
+    .item .right { display:flex; align-items:center; gap: 0.6em; }
+    .iconBtn { background: rgba(255,255,255,.06); border: 0.06em solid rgba(255,255,255,.2); color: var(--fg); padding: 0.35em 0.6em; border-radius: 0.6em; font-weight: 800; }
+    .iconBtn:active { transform: scale(0.96); }
     .sidebar .list { overflow: auto; padding: 0.7em 0.9em; display:flex; flex-direction: column; gap: 0.6em; }
     .item { display:flex; align-items:center; justify-content: space-between; padding: 0.7em 0.8em; background: rgba(255,255,255,.04); border: 0.06em solid rgba(255,255,255,.08); border-radius: 0.9em; }
     .item .meta { font-size: 0.9em; color: var(--muted); }
@@ -104,6 +109,19 @@
     .typeOnly { display: none; }
     .app[data-mode="type"] .tapOnly { display: none; }
     .app[data-mode="type"] .typeOnly { display: block; }
+
+    /* In type mode, use a single grid track (no gap) so the pane's gradient/color is continuous */
+    .app[data-mode="type"] .main { grid-template-rows: 1fr; gap: 0; }
+    .app[data-mode="type"] #typePane { grid-row: 1 / span 1; }
+
+    /* Gradient continuity fix: draw gradient on a stable layer and flash on an overlay */
+    .pane { background: transparent !important; }
+    .pane::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%); background-repeat: no-repeat; background-size: 100% 100%; will-change: transform, opacity; }
+    .pane > * { position: relative; z-index: 1; }
+    @keyframes paneFlashOverlay { from { opacity: 1; } to { opacity: 0; } }
+    .pane::after { content: ""; position: absolute; inset: 0; background: rgba(255,106,0,.25); opacity: 0; pointer-events: none; }
+    .pane.flash { animation: none !important; }
+    .pane.flash::after { animation: paneFlashOverlay 180ms ease; }
 
     @media (min-width: 600px) { .main { padding: calc(5.7em + env(safe-area-inset-top)) 1.4em 1.4em; gap: 1em; } }
   </style>
@@ -173,7 +191,7 @@
           </div>
         </div>
         <div class="buttonStack">
-          <button id="typeSave" class="btnPrimary" type="button">Save and New</button>
+          <button id="typeSave" class="btnPrimary" type="button">Save as New</button>
           <button id="typeReset" class="btnGhost" type="button">Reset Entry</button>
         </div>
       </section>
@@ -184,7 +202,10 @@
     <div class="grab"></div>
     <header>
       <strong>Recent entries</strong>
-      <button class="full" id="fullListBtn">Full List</button>
+      <div class="headBtns">
+        <button class="ghost" id="exportBtn">Export JSON</button>
+        <button class="full" id="fullListBtn">Full List</button>
+      </div>
     </header>
     <div class="list" id="recentList"></div>
   </div>
@@ -219,6 +240,7 @@
     const closeFull = document.getElementById('closeFull');
     const recentList = document.getElementById('recentList');
     const fullList = document.getElementById('fullList');
+    const exportBtn = document.getElementById('exportBtn');
 
     // TYPE MODE elements
     const typeAddress = document.getElementById('typeAddress');
@@ -271,6 +293,7 @@
     }
 
     function renderLists(){
+      // Recent list (reverse chronological)
       recentList.innerHTML = '';
       const reversed = [...state.entries].reverse();
       reversed.forEach((e)=>{
@@ -279,20 +302,47 @@
         div.className = 'item';
         const left = document.createElement('div');
         left.innerHTML = `<strong>${f.addr}</strong><div class="meta">${f.outside} • ${f.amountLabel}</div>`;
+        const right = document.createElement('div');
+        right.className = 'right';
         const time = document.createElement('span');
         time.className = 'badge';
         time.textContent = new Date(e.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        const del = document.createElement('button');
+        del.className = 'iconBtn';
+        del.setAttribute('data-action','delete');
+        del.setAttribute('data-id', String(e.ts));
+        del.title = 'Delete';
+        del.textContent = '🗑';
+        right.appendChild(time);
+        right.appendChild(del);
         div.appendChild(left);
-        div.appendChild(time);
+        div.appendChild(right);
         recentList.appendChild(div);
       });
 
+      // Full list (chronological)
       fullList.innerHTML = '';
       state.entries.forEach((e)=>{
         const f = formatEntry(e);
         const row = document.createElement('div');
         row.className = 'item';
-        row.innerHTML = `<div><strong>${f.addr}</strong><div class="meta">${f.outside} • ${f.amountLabel}</div></div><span class="badge">${new Date(e.ts).toLocaleString()}</span>`;
+        const left = document.createElement('div');
+        left.innerHTML = `<strong>${f.addr}</strong><div class="meta">${f.outside} • ${f.amountLabel}</div>`;
+        const right = document.createElement('div');
+        right.className = 'right';
+        const time = document.createElement('span');
+        time.className = 'badge';
+        time.textContent = new Date(e.ts).toLocaleString();
+        const del = document.createElement('button');
+        del.className = 'iconBtn';
+        del.setAttribute('data-action','delete');
+        del.setAttribute('data-id', String(e.ts));
+        del.title = 'Delete';
+        del.textContent = '🗑';
+        right.appendChild(time);
+        right.appendChild(del);
+        row.appendChild(left);
+        row.appendChild(right);
         fullList.appendChild(row);
       });
     }
@@ -498,6 +548,24 @@
     fullListBtn.addEventListener('click', ()=>{ fullModal.classList.add('show'); });
     closeFull.addEventListener('click', ()=>{ fullModal.classList.remove('show'); });
 
+    // Export JSON
+    if (exportBtn) {
+      exportBtn.addEventListener('click', ()=>{
+        try {
+          const data = JSON.stringify(state.entries, null, 2);
+          const blob = new Blob([data], {type:'application/json'});
+          const url = URL.createObjectURL(blob);
+          const d = new Date();
+          const fname = `treats-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}.json`;
+          const a = document.createElement('a');
+          a.href = url; a.download = fname;
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(()=> URL.revokeObjectURL(url), 1000);
+          showToast('Exported JSON');
+        } catch(err){ console.error('Export failed', err); showToast('Export failed'); }
+      });
+    }
+
     // ===== TYPE MODE LOGIC =====
     function fillTypeUIFromState(){
       const s = state.entry.address.join('');
@@ -588,6 +656,37 @@
         // Test 3: reset via logic
         applyAddressString('');
         results.push({name:'reset to empty', pass: JSON.stringify(state.entry.address) === JSON.stringify([0,0,0,0]), got: state.entry.address.slice()});
+        // Test 4: deleteEntryByTs
+        const before = state.entries.length;
+        const dummy = { address:[1,1,1,1], outside:false, amount:3, ts: 1234567890123 };
+        state.entries.push(dummy);
+        saveEntries();
+        const idxBefore = state.entries.findIndex(e=>e.ts===dummy.ts);
+        function deleteEntryByTs(ts){
+          const i = state.entries.findIndex(x=>x.ts===ts);
+          if(i!==-1){ state.entries.splice(i,1); saveEntries(); }
+        }
+        deleteEntryByTs(dummy.ts);
+        const idxAfter = state.entries.findIndex(e=>e.ts===dummy.ts);
+        results.push({name:'deleteEntryByTs', pass: idxBefore!==-1 && idxAfter===-1 && state.entries.length===before, got:{idxBefore, idxAfter, len: state.entries.length}});
+        // Test 5: export stringify
+        const exported = JSON.stringify(state.entries, null, 2);
+        results.push({name:'export stringify', pass: typeof exported==='string' && exported.startsWith('[')});
+        // Test 6: bool toggle reflect text
+        state.entry.outside = false; fillTypeUIFromState();
+        results.push({name:'outside label false', pass: typeOutside.textContent.includes('False')});
+        // Test 7: amount button active
+        state.entry.amount = 2; fillTypeUIFromState();
+        const active = [...typeCandy.querySelectorAll('.chip')].find(b=>b.classList.contains('active'));
+        results.push({name:'amount active is 2', pass: active && active.dataset.val==='2'});
+        // Test 8/9: layout seam prevention — row gap should be 0 in type mode
+        const mainEl = document.querySelector('.main');
+        setMode('type');
+        const csType = getComputedStyle(mainEl);
+        results.push({name:'type mode row-gap 0', pass: csType.rowGap === '0px'});
+        setMode('tap');
+        const csTap = getComputedStyle(mainEl);
+        results.push({name:'tap mode row-gap nonzero', pass: csTap.rowGap !== '0px'});
         console.table(results);
       } catch(err){ console.error('Self-tests error:', err); }
     })();
@@ -595,6 +694,33 @@
     // Init
     renderLists();
     updateUI();
+
+    // Deletion handlers (sidebar + modal)
+    function deleteEntryByTs(ts){
+      const idx = state.entries.findIndex(x=>x.ts===ts);
+      if(idx!==-1){
+        state.entries.splice(idx,1);
+        saveEntries();
+        renderLists();
+        showToast('Deleted');
+      }
+    }
+    recentList.addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-action="delete"]');
+      if(!btn) return;
+      const ts = Number(btn.dataset.id);
+      if(!Number.isNaN(ts)){
+        if(confirm('Delete this entry?')) deleteEntryByTs(ts);
+      }
+    });
+    fullList.addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-action="delete"]');
+      if(!btn) return;
+      const ts = Number(btn.dataset.id);
+      if(!Number.isNaN(ts)){
+        if(confirm('Delete this entry?')) deleteEntryByTs(ts);
+      }
+    });
   })();
   </script>
 </body>
