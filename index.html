@@ -27,80 +27,155 @@
     .header {
       position: absolute; top: 0; left: 0; right: 0;
       display: flex; justify-content: space-between; align-items: center;
-      padding: calc(8px + env(safe-area-inset-top)) env(safe-area-inset-right) 8px env(safe-area-inset-left);
-      pointer-events: none; z-index: 10;
+      padding: calc(0.8em + env(safe-area-inset-top)) calc(1.4em + env(safe-area-inset-right)) 0.8em calc(1.4em + env(safe-area-inset-left));
+      z-index: 10;
     }
     .header .btn {
-      pointer-events: auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      color: var(--fg); padding: 10px 12px; border-radius: 16px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-      font-weight: 600; user-select: none; touch-action: manipulation;
+      background: rgba(255,255,255,0.08); border: 0.08em solid rgba(255,255,255,0.15);
+      color: var(--fg); padding: 0.9em 1.1em; border-radius: 1.4em; backdrop-filter: blur(0.5em); -webkit-backdrop-filter: blur(0.5em);
+      font-weight: 700; user-select: none; touch-action: manipulation; margin: 0 0.6em; font-size: 1.05em;
     }
     .header .btn:active { transform: scale(0.98); }
     .header .btn.hold { position: relative; overflow: hidden; }
     .hold-progress { position: absolute; inset: 0; background: var(--accent); opacity: 0.15; transform: scaleX(0); transform-origin: left; transition: transform .1s linear; }
-    .title { font-weight: 800; letter-spacing: .5px; font-size: 16px; }
+    .title { font-weight: 800; letter-spacing: .035em; font-size: 1.1em; }
 
-    .main { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 8px; padding: 60px 8px 8px; }
-    .pane { border-radius: 18px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); outline: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.25) inset; position: relative; overflow: hidden; }
-    .pane .label { position:absolute; top: 10px; left: 12px; font-size: 12px; letter-spacing:.4px; color: var(--muted); }
+    .main { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 0.8em; padding: calc(5.3em + env(safe-area-inset-top)) 1.2em 1.2em; }
+    .pane { border-radius: 1.1em; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); outline: 0.08em solid rgba(255,255,255,0.1); box-shadow: 0 1.2em 2.4em rgba(0,0,0,0.25) inset; position: relative; overflow: hidden; min-height: 0; }
 
-    .inputPane { display:flex; align-items:center; justify-content:center; font-size: clamp(24px,6vw,40px); text-align:center; padding: 1rem; }
-    .enterPane { display:flex; align-items:center; justify-content:center; font-size: 14px; color: var(--muted); }
+    /* Tap flash feedback */
+    @keyframes paneFlash { from { background-color: rgba(255,106,0,.25); } to { background-color: transparent; } }
+    .pane.flash { animation: paneFlash 180ms ease; }
 
-    .debug { text-align:center; font-size:12px; opacity:.9; margin-top:6px; }
-    .spooky { position:absolute; bottom: 12px; right: 12px; font-size: 20px; }
+    /* TAP MODE */
+    .inputPane, .enterPane { display:flex; place-items:center; justify-content:center; text-align:center; padding: 1em; min-height: 0; }
+    .topStatus { font-size: clamp(1.8em,7vw,2.8em); font-weight: 800; letter-spacing: .03em; text-shadow: 0 0.12em 0.5em rgba(0,0,0,.4); }
 
-    .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: rgba(0,0,0,.8); color: #fff; padding: 10px 14px; border-radius: 12px; font-size: 13px; opacity:0; pointer-events:none; transition: opacity .2s, transform .2s; z-index: 200; }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+    .enterInner { display:flex; flex-direction:column; gap: 0.8em; align-items:center; justify-content:center; width: 100%; }
+    .line { font-size: clamp(1.4em,7vw,2.2em); font-weight: 800; letter-spacing: .03em; }
+    .subtle { font-weight: 600; color: var(--muted); font-size: clamp(0.85em,3.5vw,0.95em); }
 
-    .sidebar { position: fixed; top: 0; right: 0; width: min(90vw, 380px); height: 100dvh; background: #0e0826; box-shadow: -12px 0 30px rgba(0,0,0,.5); border-left: 1px solid rgba(255,255,255,.07); transform: translateX(100%); transition: transform .25s ease; z-index: 150; display:flex; flex-direction: column; }
+    .spooky { position:absolute; bottom: 0.8em; right: 0.8em; font-size: 1.25em; }
+
+    .toast { position: fixed; left: 50%; bottom: calc(1.2em + env(safe-area-inset-bottom)); transform: translateX(-50%); background: rgba(0,0,0,.8); color: #fff; padding: 0.7em 0.9em; border-radius: 0.9em; font-size: 0.9em; opacity:0; pointer-events:none; transition: opacity .2s, transform .2s; z-index: 200; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(-0.25em); }
+
+    .sidebar { position: fixed; top: 0; right: 0; width: min(90vw, 24em); height: 100dvh; background: #0e0826; box-shadow: -0.9em 0 2em rgba(0,0,0,.5); border-left: 0.06em solid rgba(255,255,255,.07); transform: translateX(100%); transition: transform .25s ease; z-index: 150; display:flex; flex-direction: column; }
     .sidebar.open { transform: translateX(0%); }
-    .sidebar .grab { width: 32px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); align-self:center; margin: 10px 0; }
-    .sidebar header { display:flex; align-items:center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08);} 
-    .sidebar header .full { background: var(--accent); color:#000; font-weight:700; padding:8px 10px; border-radius:10px; }
-    .sidebar .list { overflow: auto; padding: 10px 14px; display:flex; flex-direction: column; gap: 8px; }
-    .item { display:flex; align-items:center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; }
-    .item .meta { font-size: 12px; color: var(--muted); }
+    .sidebar .grab { width: 2.2em; height: 0.25em; border-radius: 0.25em; background: rgba(255,255,255,.28); align-self:center; margin: 0.8em 0; }
+    .sidebar header { display:flex; align-items:center; justify-content: space-between; padding: 0.8em 0.9em; border-bottom: 0.06em solid rgba(255,255,255,.08);} 
+    .sidebar header .full { background: var(--accent); color:#000; font-weight:700; padding:0.6em 0.7em; border-radius:0.7em; }
+    .sidebar .list { overflow: auto; padding: 0.7em 0.9em; display:flex; flex-direction: column; gap: 0.6em; }
+    .item { display:flex; align-items:center; justify-content: space-between; padding: 0.7em 0.8em; background: rgba(255,255,255,.04); border: 0.06em solid rgba(255,255,255,.08); border-radius: 0.9em; }
+    .item .meta { font-size: 0.9em; color: var(--muted); }
 
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); opacity:0; pointer-events:none; transition: opacity .25s; z-index: 140; }
     .overlay.show { opacity:1; pointer-events: auto; }
 
     .modal { position: fixed; inset: 0; background: var(--bg2); z-index: 160; display:none; flex-direction: column; }
     .modal.show { display:flex; }
-    .modal header { display:flex; justify-content: space-between; align-items:center; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08);} 
-    .modal .content { overflow:auto; padding: 14px; display:flex; flex-direction: column; gap: 10px; }
+    .modal header { display:flex; justify-content: space-between; align-items:center; padding: 0.8em 0.9em; border-bottom: 0.06em solid rgba(255,255,255,.08);} 
+    .modal .content { overflow:auto; padding: 0.9em; display:flex; flex-direction: column; gap: 0.8em; }
 
-    .badge { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .badge { background: rgba(255,255,255,.08); border: 0.06em solid rgba(255,255,255,.12); padding: 0.2em 0.6em; border-radius: 999px; font-size: 0.9em; }
 
-    @media (min-width: 600px) { .main { padding: 72px 12px 12px; gap: 12px; } }
+    /* TYPE MODE – full-height stacked layout */
+    .typePane { grid-row: 1 / span 2; height: 100%; display:flex; flex-direction:column; gap: 1.2em; padding: 1.2em; box-sizing: border-box; }
+    .block { width: 100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .grow { flex: 1 1 0; min-height: 0; }
+    .block .label { font-size: 0.95em; color: var(--muted); margin-bottom: 0.7em; font-weight: 700; letter-spacing: .03em; }
+    .fullInput { width: 100%; max-width: 100%; box-sizing: border-box; font-size: clamp(1.2em, 6vw, 2em); text-align: center; padding: 0.9em 0.8em; border-radius: 1em; border: 0.06em solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: var(--fg); }
+    .toggle { width: 100%; padding: 1.1em 0.9em; border-radius: 1em; border: 0.06em solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: var(--fg); font-size: clamp(1.2em,5.5vw,1.5em); font-weight: 900; text-align: center; }
+    .segmented { width: 100%; display:flex; gap: 0.9em; }
+    .segmented button { flex: 1; padding: 1.1em 0; font-size: clamp(1.2em,5.5vw,1.5em); border-radius: 0.9em; border: 0.06em solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: var(--fg); font-weight: 900; }
+    .segmented .active { outline: 0.18em solid var(--accent); }
+    /* Keypad */
+    .keypad { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8em; }
+    .keypad button { display:flex; align-items:center; justify-content:center; padding: 1.1em 0; font-size: clamp(1.2em, 6vw, 1.6em); border-radius: 0.9em; border: 0.06em solid rgba(255,255,255,.2); background: rgba(255,255,255,.07); color: var(--fg); font-weight: 900; }
+    .keypad button:active { transform: scale(0.98); }
+    .keypad .action { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.25); }
+    .buttonStack { display:flex; flex-direction:column; gap: 1em; margin-top: auto; }
+    .buttonStack .btnPrimary, .buttonStack .btnGhost { width: 100%; padding: 1.1em 0.9em; font-size: clamp(1.2em,5.5vw,1.5em); border-radius: 0.9em; }
+    .btnPrimary { background: var(--accent); color: #000; border: none; font-weight: 900; }
+    .btnGhost { background: transparent; border: 0.06em solid rgba(255,255,255,.2); color: var(--fg); font-weight: 800; }
+
+    /* Mode visibility */
+    .tapOnly { display: block; }
+    .typeOnly { display: none; }
+    .app[data-mode="type"] .tapOnly { display: none; }
+    .app[data-mode="type"] .typeOnly { display: block; }
+
+    @media (min-width: 600px) { .main { padding: calc(5.7em + env(safe-area-inset-top)) 1.4em 1.4em; gap: 1em; } }
   </style>
 </head>
 <body>
-  <div class="app" id="app">
+  <div class="app" id="app" data-mode="tap">
     <div class="header">
-      <button id="modeBtn" class="btn hold" aria-label="Toggle mode (hold 3s)">
+      <button id="modeBtn" class="btn hold" aria-label="Toggle mode (hold 1s)">
         <span class="title">Tap Mode</span>
         <span class="hold-progress"></span>
       </button>
       <div></div>
-      <button id="sidebarBtn" class="btn hold" aria-label="Open sidebar (hold 3s)">☰
+      <button id="sidebarBtn" class="btn hold" aria-label="Open sidebar (hold 1s)">☰
         <span class="hold-progress"></span>
       </button>
     </div>
 
     <main class="main">
-      <section id="inputPane" class="pane inputPane" role="button" aria-label="Top input area">
-        <span id="inputText">Tap here to set: Address digit 1</span>
+      <!-- TAP MODE UI -->
+      <section id="inputPane" class="pane inputPane tapOnly" role="button" aria-label="Top input area">
+        <div id="topStatus" class="topStatus">Address #1</div>
         <div class="spooky">🎃</div>
-        <div class="label">Top: input</div>
       </section>
 
-      <section id="enterPane" class="pane enterPane" role="button" aria-label="Bottom enter area">
-        <div>
-          <div id="enterLabel">Hold 3s to reset current entry • Tap to confirm this field</div>
-          <div class="debug" id="debugText">Addr: ____ • Outside: — • Amount: — • Current taps: 0</div>
+      <section id="enterPane" class="pane enterPane tapOnly" role="button" aria-label="Bottom enter area">
+        <div class="enterInner">
+          <div id="dbgAddr" class="line">Address: ____</div>
+          <div id="dbgOutside" class="line">Outside: —</div>
+          <div id="dbgAmount" class="line">Amount: —</div>
+          <div class="subtle">Tap bottom to enter • Hold 1s to reset</div>
         </div>
-        <div class="label">Bottom: enter/reset</div>
+      </section>
+
+      <!-- TYPE MODE UI -->
+      <section id="typePane" class="pane typePane typeOnly" aria-label="Type mode form">
+        <div class="block grow" style="margin-bottom: 0.8em;">
+          <div class="label">Address</div>
+          <input id="typeAddress" class="fullInput" type="tel" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="0000" />
+        </div>
+        <div class="block grow" style="margin-bottom: 2em;">
+          <div class="keypad" id="dialer" aria-label="Address dialer">
+            <button type="button" data-key="1">1</button>
+            <button type="button" data-key="2">2</button>
+            <button type="button" data-key="3">3</button>
+            <button type="button" data-key="4">4</button>
+            <button type="button" data-key="5">5</button>
+            <button type="button" data-key="6">6</button>
+            <button type="button" data-key="7">7</button>
+            <button type="button" data-key="8">8</button>
+            <button type="button" data-key="9">9</button>
+            <button type="button" class="action" data-key="reset">Reset</button>
+            <button type="button" data-key="0">0</button>
+            <button type="button" class="action" data-key="back">⌫</button>
+          </div>
+        </div>
+        <div class="block grow" style="margin-bottom: 1.2em;">
+          <div class="label">Outside</div>
+          <button id="typeOutside" class="toggle" type="button">True (Outside)</button>
+        </div>
+        <div class="block grow" style="margin-bottom: 1.5em;">
+          <div class="label">Candy (0–3)</div>
+          <div id="typeCandy" class="segmented" role="group" aria-label="Candy amount">
+            <button class="chip" data-val="0" type="button">0</button>
+            <button class="chip" data-val="1" type="button">1</button>
+            <button class="chip" data-val="2" type="button">2</button>
+            <button class="chip" data-val="3" type="button">3</button>
+          </div>
+        </div>
+        <div class="buttonStack">
+          <button id="typeSave" class="btnPrimary" type="button">Save and New</button>
+          <button id="typeReset" class="btnGhost" type="button">Reset Entry</button>
+        </div>
       </section>
     </main>
   </div>
@@ -127,10 +202,13 @@
 
   <script>
   (function(){
+    const app = document.getElementById('app');
     const inputPane = document.getElementById('inputPane');
+    const topStatus = document.getElementById('topStatus');
     const enterPane = document.getElementById('enterPane');
-    const inputText = document.getElementById('inputText');
-    const debugText = document.getElementById('debugText');
+    const dbgAddr = document.getElementById('dbgAddr');
+    const dbgOutside = document.getElementById('dbgOutside');
+    const dbgAmount = document.getElementById('dbgAmount');
     const sidebarBtn = document.getElementById('sidebarBtn');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
@@ -142,7 +220,14 @@
     const recentList = document.getElementById('recentList');
     const fullList = document.getElementById('fullList');
 
-    const HOLD_MS = 3000;
+    // TYPE MODE elements
+    const typeAddress = document.getElementById('typeAddress');
+    const typeOutside = document.getElementById('typeOutside');
+    const typeCandy = document.getElementById('typeCandy');
+    const typeSave = document.getElementById('typeSave');
+    const typeReset = document.getElementById('typeReset');
+
+    const HOLD_MS = 1000; // 1 second holds
 
     const state = {
       mode: 'tap',
@@ -153,12 +238,12 @@
     };
 
     const fields = [
-      { key:'address0', label:'Address digit 1', type:'digit', idx:0, max:9 },
-      { key:'address1', label:'Address digit 2', type:'digit', idx:1, max:9 },
-      { key:'address2', label:'Address digit 3', type:'digit', idx:2, max:9 },
-      { key:'address3', label:'Address digit 4', type:'digit', idx:3, max:9 },
-      { key:'outside',  label:'Outside? (even=True, odd=False)', type:'bool' },
-      { key:'amount',   label:'Amount 0\u20133', type:'scale', max:3 },
+      { key:'address0', display:'Address #1', type:'digit', idx:0, max:9 },
+      { key:'address1', display:'Address #2', type:'digit', idx:1, max:9 },
+      { key:'address2', display:'Address #3', type:'digit', idx:2, max:9 },
+      { key:'address3', display:'Address #4', type:'digit', idx:3, max:9 },
+      { key:'outside',  display:'Outside',    type:'bool' },
+      { key:'amount',   display:'Amount (0–3)', type:'scale', max:3 },
     ];
 
     function saveEntries(){
@@ -176,14 +261,13 @@
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add('show');
-      setTimeout(()=> toast.classList.remove('show'), 1600);
+      setTimeout(()=> toast.classList.remove('show'), 1200);
     }
 
     function formatEntry(e){
       const addr = e.address.join('');
       const outside = e.outside ? 'Outside' : 'Knock';
-      const amountNames = ['0', '1', '2+', 'Handful'];
-      return { addr, outside, amountLabel: amountNames[e.amount] || String(e.amount) };
+      return { addr, outside, amountLabel: String(e.amount) };
     }
 
     function renderLists(){
@@ -218,11 +302,19 @@
       state.tapCount = 0;
       state.entry = { address: [0,0,0,0], outside: true, amount: 0 };
       updateUI();
+      fillTypeUIFromState();
+    }
+
+    function flash(el){
+      el.classList.remove('flash');
+      void el.offsetWidth; // restart animation
+      el.classList.add('flash');
+      setTimeout(()=> el.classList.remove('flash'), 220);
     }
 
     function updateUI(){
       const field = fields[state.fieldIndex];
-      inputText.textContent = `Tap here to set: ${field.label}`;
+      if(topStatus) topStatus.textContent = field.display;
       const preview = { ...state.entry, address: [...state.entry.address] };
       if(field.type === 'digit'){
         const v = (state.entry.address[field.idx] + state.tapCount) % 10;
@@ -231,13 +323,12 @@
         const v = (state.tapCount % 2 === 0); // even -> True (Outside)
         preview.outside = v;
       } else if(field.type === 'scale'){
-        const v = (state.entry.amount + state.tapCount) % 4;
+        const v = (state.entry.amount + state.tapCount) % 4; // 0..3
         preview.amount = v;
       }
-      debugText.textContent =
-        `Addr: ${preview.address.map(d=>d).join('')} • ` +
-        `Outside: ${preview.outside ? 'True (Outside)' : 'False (Knock)'} • ` +
-        `Amount: ${preview.amount} • Current taps: ${state.tapCount}`;
+      dbgAddr.textContent = `Address: ${preview.address.map(d=>d).join('')}`;
+      dbgOutside.textContent = `Outside: ${preview.outside ? 'True (Outside)' : 'False (Knock)'}`;
+      dbgAmount.textContent = `Amount: ${preview.amount}`;
     }
 
     function commitField(){
@@ -247,7 +338,7 @@
       } else if(field.type === 'bool'){
         state.entry.outside = (state.tapCount % 2 === 0);
       } else if(field.type === 'scale'){
-        state.entry.amount = (state.entry.amount + state.tapCount) % 4;
+        state.entry.amount = (state.entry.amount + state.tapCount) % 4; // 0..3
       }
       state.tapCount = 0;
 
@@ -285,15 +376,25 @@
       if(field.type === 'digit'){
         state.tapCount = (state.tapCount + 1) % 10;
       } else if(field.type === 'bool'){
-        state.tapCount = (state.tapCount + 1) % 1000000; // parity matters only
+        state.tapCount = (state.tapCount + 1) % 1000000; // parity only
       } else if(field.type === 'scale'){
-        state.tapCount = (state.tapCount + 1) % 4;
+        state.tapCount = (state.tapCount + 1) % 4; // 0..3
       }
+      flash(inputPane);
       updateUI();
     }
 
     setupTap(inputPane, handleTopTap);
-    setupTap(enterPane, (e)=>{ if(e && e.cancelable) e.preventDefault(); commitField(); });
+
+    // Prevent accidental commit after a long-press reset
+    let skipNextEnterTap = false;
+
+    setupTap(enterPane, (e)=>{
+      if(skipNextEnterTap){ skipNextEnterTap = false; return; }
+      if(e && e.cancelable) e.preventDefault();
+      flash(enterPane);
+      commitField();
+    });
 
     // Long-press utility
     function addHoldBehavior(el, onHold, progressEl){
@@ -335,23 +436,27 @@
       el.addEventListener('mouseleave', clear);
     }
 
-    // Hold 3s to reset the in-progress entry
+    // Hold 1s to reset the in-progress entry
     addHoldBehavior(enterPane, ()=>{
       resetInProgress();
       showToast('Entry reset');
       vibrate(30);
+      skipNextEnterTap = true; // don't commit on touchend after long press
     });
 
-    // Mode toggle (hold 3s)
+    // Mode toggle (hold 1s)
+    function setMode(m){
+      state.mode = m;
+      app.setAttribute('data-mode', m);
+      modeBtn.querySelector('.title').textContent = (m === 'tap') ? 'Tap Mode' : 'Type Mode';
+      if(m === 'type') fillTypeUIFromState();
+    }
+
     addHoldBehavior(modeBtn, ()=>{
-      if(state.mode === 'tap'){
-        showToast('Type mode coming soon');
-      } else {
-        state.mode = 'tap';
-      }
+      setMode(state.mode === 'tap' ? 'type' : 'tap');
     }, modeBtn.querySelector('.hold-progress'));
 
-    // Sidebar open (hold 3s)
+    // Sidebar open (hold 1s)
     addHoldBehavior(sidebarBtn, ()=>{ openSidebar(); }, sidebarBtn.querySelector('.hold-progress'));
 
     function openSidebar(){
@@ -363,6 +468,7 @@
       overlay.classList.remove('show');
     }
     overlay.addEventListener('click', closeSidebar);
+    overlay.addEventListener('touchstart', closeSidebar, {passive:true});
 
     // Swipe to close sidebar
     let startX = null;
@@ -375,9 +481,116 @@
     });
     sidebar.addEventListener('touchend', ()=> startX = null);
 
+    // Edge swipe to open sidebar (for reliability)
+    let edgeStartX = null;
+    document.addEventListener('touchstart', (e)=>{
+      const x = e.touches[0].clientX;
+      if(window.innerWidth - x < 24){ edgeStartX = x; } else { edgeStartX = null; }
+    }, {passive:true});
+    document.addEventListener('touchmove', (e)=>{
+      if(edgeStartX == null) return;
+      const x = e.touches[0].clientX;
+      if(edgeStartX - x > 30){ openSidebar(); edgeStartX = null; }
+    }, {passive:true});
+    document.addEventListener('touchend', ()=> edgeStartX = null, {passive:true});
+
     // Full list modal
     fullListBtn.addEventListener('click', ()=>{ fullModal.classList.add('show'); });
     closeFull.addEventListener('click', ()=>{ fullModal.classList.remove('show'); });
+
+    // ===== TYPE MODE LOGIC =====
+    function fillTypeUIFromState(){
+      const s = state.entry.address.join('');
+      // Show placeholder when address is all zeros so keypad can start from empty
+      typeAddress.value = (s === '0000') ? '' : s;
+      typeOutside.textContent = state.entry.outside ? 'True (Outside)' : 'False (Knock)';
+      [...typeCandy.querySelectorAll('.chip')].forEach(b=>{
+        b.classList.toggle('active', Number(b.dataset.val) === state.entry.amount);
+      });
+    }
+
+    typeAddress.addEventListener('input', ()=>{
+      applyAddressString(typeAddress.value);
+    });
+
+    typeOutside.addEventListener('click', ()=>{
+      state.entry.outside = !state.entry.outside;
+      typeOutside.textContent = state.entry.outside ? 'True (Outside)' : 'False (Knock)';
+      updateUI();
+    });
+
+    typeCandy.addEventListener('click', (e)=>{
+      const b = e.target.closest('.chip');
+      if(!b) return;
+      state.entry.amount = Number(b.dataset.val);
+      fillTypeUIFromState();
+      updateUI();
+    });
+
+    typeSave.addEventListener('click', ()=>{
+      const addrStr = typeAddress.value;
+      if(addrStr.length !== 4){ showToast('Enter 4 address digits'); return; }
+      const final = { ...state.entry, ts: Date.now() };
+      state.entries.push(final);
+      saveEntries();
+      renderLists();
+      showToast('Saved 🎃');
+      vibrate(20);
+      resetInProgress();
+      fillTypeUIFromState();
+    });
+
+    typeReset.addEventListener('click', ()=>{
+      resetInProgress();
+      showToast('Entry reset');
+      vibrate(30);
+    });
+
+    function applyAddressString(raw){
+      const digits = String(raw).replace(/[^0-9]/g,'').slice(0,4);
+      typeAddress.value = digits;
+      const arr = [0,0,0,0];
+      for(let i=0;i<digits.length;i++) arr[i] = Number(digits[i]);
+      state.entry.address = arr;
+      updateUI();
+    }
+
+    // Dialer keypad logic
+    const dialer = document.getElementById('dialer');
+    if (dialer) {
+      dialer.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        const key = b.dataset.key;
+        let val = String(typeAddress.value || '').replace(/[^0-9]/g, '').slice(0, 4);
+        if (key === 'back') {
+          val = val.slice(0, -1);
+        } else if (key === 'reset') {
+          val = '';
+        } else if (/^[0-9]$/.test(key)) {
+          if (val.length < 4) val += key;
+        }
+        applyAddressString(val);
+        vibrate(7);
+      });
+    }
+
+    // ===== DEV SELF-TESTS (console only) =====
+    (function runSelfTests(){
+      try {
+        const results = [];
+        // Test 1: applyAddressString basic
+        applyAddressString('1390');
+        results.push({name:'applyAddressString 1390', pass: JSON.stringify(state.entry.address) === JSON.stringify([1,3,9,0]), got: state.entry.address.slice()});
+        // Test 2: backspace via logic
+        let tmp = '1390'; tmp = tmp.slice(0,-1); applyAddressString(tmp);
+        results.push({name:'backspace -> 139', pass: JSON.stringify(state.entry.address) === JSON.stringify([1,3,9,0].slice(0,3).concat([0])) , got: state.entry.address.slice()});
+        // Test 3: reset via logic
+        applyAddressString('');
+        results.push({name:'reset to empty', pass: JSON.stringify(state.entry.address) === JSON.stringify([0,0,0,0]), got: state.entry.address.slice()});
+        console.table(results);
+      } catch(err){ console.error('Self-tests error:', err); }
+    })();
 
     // Init
     renderLists();
